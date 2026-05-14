@@ -1,0 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --font-text: 'Playfair Display', serif;
+  --font-title: 'Merriweather', serif;
+
+  --color-bg: #FFF3E6;
+  --color-primary: #381932;  /* h1, Title */
+  --color-secondary: #5d2d14; /* h2, <p> */
+
+  /* Additional subtle colors for accents */
+  --color-accent-soft: rgba(56, 25, 50, 0.04);
+  --color-accent-warm: rgba(93, 45, 20, 0.03);
+}
+
+@layer utilities {
+  .bg-main {
+  position: relative;
+  background-color: var(--color-bg);
+  isolation: isolate; /* Creates new stacking context */
+  overflow-x: hidden; /* Prevents horizontal scroll from blur effects */
+  min-height: 100vh; /* Ensures background fills the viewport */
+}
+
+/* Subtle organic shape - top left */
+.bg-main::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 15%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, 
+    rgba(56, 25, 50, 0.15) 0%,    /* Increased from 0.08 */
+    rgba(56, 25, 50, 0.08) 40%,   /* Increased from 0.03 */
+    transparent 70%
+  );
+  border-radius: 50%;
+  filter: blur(50px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Gentle warm accent - bottom right */
+.bg-main::after {
+  content: '';
+  position: absolute;
+  bottom: -10%;
+  right: -5%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle,
+    rgba(93, 45, 20, 0.13) 0%,
+    rgba(93, 45, 20, 0.06) 40%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  filter: blur(50px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+
+  .text-main {
+    color: var(--color-primary);
+  }
+
+  .text-light {
+    color: var(--color-secondary);
+  }
+}
+
+.text-gradient-heading-main {
+  background: linear-gradient(
+    155deg,
+    var(--color-secondary) 35%,
+    var(--color-primary) 40%,
+    var(--color-secondary) 85%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Add to your existing index.css */
+@layer utilities {
+  /* ... your existing utilities ... */
+  
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .rotate-y-0 {
+    transform: rotateY(0deg);
+  }
+  
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+}
+
+/* Add to your existing index.css for smooth animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Optional: Add glass morphism effect for the container */
+.screen-container {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+  
