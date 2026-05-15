@@ -5,6 +5,7 @@ import { FlashcardNavigation } from '../components/FlashCard/FlashcardNavigation
 import { useFlashcard } from '../hooks/useFlashcard';
 import { flashcardsData } from '../data/flashcards';
 
+
 export const Dashboard: React.FC = () => {
   const {
     currentCard,
@@ -35,6 +36,8 @@ export const Dashboard: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [showResetConfirm]);
+
+  
   
   return (
     <div className="bg-main py-2 md:py-6 px-2 md:px-4 flex items-center justify-center" style={{ minHeight: '100vh' }}>
