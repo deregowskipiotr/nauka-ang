@@ -21,45 +21,44 @@
   position: relative;
   background-color: var(--color-bg);
   isolation: isolate; /* Creates new stacking context */
-  overflow: hidden; /* Prevents horizontal and vertical scroll from blur effects expanding the page */
   min-height: 100vh; /* Ensures background fills the viewport */
 }
 
 /* Subtle organic shape - top left */
 .bg-main::before {
   content: '';
-  position: absolute;
-  top: 10%;
-  left: 15%;
+  position: fixed;
+  top: -8%;
+  left: 2%;
   width: 500px;
   height: 500px;
   background: radial-gradient(circle, 
-    rgba(56, 25, 50, 0.15) 0%,    /* Increased from 0.08 */
-    rgba(56, 25, 50, 0.08) 40%,   /* Increased from 0.03 */
-    transparent 70%
+    rgba(56, 25, 50, 0.35) 0%,    /* Even stronger */
+    rgba(56, 25, 50, 0.20) 40%,
+    transparent 75%
   );
   border-radius: 50%;
   filter: blur(50px);
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
 }
 
 /* Gentle warm accent - bottom right */
 .bg-main::after {
   content: '';
-  position: absolute;
-  bottom: -10%;
-  right: -5%;
+  position: fixed;
+  bottom: -8%;
+  right: 2%;
   width: 500px;
   height: 500px;
   background: radial-gradient(circle,
-    rgba(93, 45, 20, 0.13) 0%,
-    rgba(93, 45, 20, 0.06) 40%,
-    transparent 70%
+    rgba(93, 45, 20, 0.30) 0%,    /* Even stronger */
+    rgba(93, 45, 20, 0.18) 40%,
+    transparent 80%
   );
   border-radius: 50%;
   filter: blur(50px);
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
 }
 
