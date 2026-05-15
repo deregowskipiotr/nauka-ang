@@ -25,7 +25,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
       `}>
         {/* Front Side */}
         <div className={`
-          p-12 md:p-16 text-center transition-all duration-300
+          p-8 md:p-12 text-center transition-all duration-300 min-h-[320px] md:min-h-[400px] flex flex-col justify-center
           ${isFlipped ? 'opacity-0 invisible' : 'opacity-100 visible'}
         `}>
           <div className="space-y-8">
@@ -34,7 +34,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               <div className="text-sm uppercase tracking-wider text-primary/50 font-title">
                 English
               </div>
-              <h2 className="text-4xl md:text-6xl font-bold text-primary font-title">
+              <h2 className="text-3xl md:text-5xl font-bold text-primary font-title">
                 {card.word}
               </h2>
             </div>
@@ -44,7 +44,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
               <div className="text-sm uppercase tracking-wider text-secondary/50 font-title">
                 Znaczenie
               </div>
-              <p className="text-xl md:text-2xl text-secondary font-text leading-relaxed">
+              <p className="text-lg md:text-2xl text-secondary font-text leading-relaxed">
                 {card.meaning}
               </p>
             </div>
@@ -53,7 +53,7 @@ export const Flashcard: React.FC<FlashcardProps> = ({
         
         {/* Back Side - Prepared for future */}
         <div className={`
-          absolute inset-0 p-12 md:p-16 text-center transition-all duration-300
+          absolute inset-0 p-8 md:p-12 text-center transition-all duration-300 min-h-[320px] md:min-h-[400px] flex items-center justify-center
           ${isFlipped ? 'opacity-100 visible' : 'opacity-0 invisible'}
           transform rotate-y-180
         `}>

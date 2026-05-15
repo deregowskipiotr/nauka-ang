@@ -1,15 +1,15 @@
 // src/components/UI/AudioButton.tsx
 import React, { useState } from 'react';
-import { Button } from './Button';
 import { useSpeech } from '../../hooks/useSpeech';
 
 interface AudioButtonProps {
   text: string;
+  className?: string;
 }
 
-export const AudioButton: React.FC<AudioButtonProps> = ({ text }) => {
+export const AudioButton: React.FC<AudioButtonProps> = ({ text, className = '' }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const { speak, stop } = useSpeech({ rate: 0.8, pitch: 1.1 }); // Even slower for absolute beginner
+  const { speak, stop } = useSpeech({ rate: 0.8, pitch: 1.1 });
   
   const handlePlay = () => {
     if (isPlaying) {
@@ -18,34 +18,23 @@ export const AudioButton: React.FC<AudioButtonProps> = ({ text }) => {
     } else {
       setIsPlaying(true);
       speak(text);
-      // Reset playing state after speech ends
       setTimeout(() => {
         setIsPlaying(false);
-      }, text.length * 100); // Rough estimate: 100ms per character
+      }, text.length * 100);
     }
   };
   
   return (
-    <Button
-      variant="audio"
-      icon={
-        <svg 
-          className={`w-8 h-8 md:w-10 md:h-10 transition-all ${isPlaying ? 'scale-110 text-primary' : 'text-primary/70'}`}
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          {isPlaying ? (
-            // Stop icon
-            <rect x="6" y="6" width="12" height="12" strokeWidth="2" stroke="currentColor" fill="currentColor" />
-          ) : (
-            // Speaker icon
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-          )}
-        </svg>
-      }
+    <button
+      type='button'
       onClick={handlePlay}
+      className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/80 hover:bg-white backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-200 min-w-[120px] cursor-pointer ${className}`}
       aria-label={isPlaying ? "Stop pronunciation" : "Hear pronunciation"}
-    />
+    >
+      <span className="text-xl">🔊</span>
+      <span className="text-sm font-text text-primary">
+        {isPlaying ? "Speaking..." : "Hear Word"}
+      </span>
+    </button>
   );
 };

@@ -128,4 +128,17 @@
   backdrop-filter: blur(10px);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
 }
+
+/* Prevent multiple scrollbars */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+#root {
+  height: 100%;
+  overflow-y: auto;  /* Only ONE scrollbar */
+}
   
