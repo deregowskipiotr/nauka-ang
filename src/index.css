@@ -21,7 +21,7 @@
   position: relative;
   background-color: var(--color-bg);
   isolation: isolate; /* Creates new stacking context */
-  overflow-x: hidden; /* Prevents horizontal scroll from blur effects */
+  overflow: hidden; /* Prevents horizontal and vertical scroll from blur effects expanding the page */
   min-height: 100vh; /* Ensures background fills the viewport */
 }
 
@@ -129,16 +129,12 @@
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
 }
 
-/* Prevent multiple scrollbars */
+/* Let the browser handle vertical scrolling natively */
 html, body {
   margin: 0;
   padding: 0;
-  height: 100%;
-  overflow-x: hidden;
+  overflow-x: hidden; /* Prevent horizontal scroll just in case */
 }
 
-#root {
-  height: 100%;
-  overflow-y: auto;  /* Only ONE scrollbar */
-}
+
   
