@@ -13,13 +13,8 @@ export const useSpeech = (options: UseSpeechProps = {}) => {
     () => typeof window !== "undefined" && "speechSynthesis" in window,
   );
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voicesLoaded, setVoicesLoaded] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoiceName, setSelectedVoiceName] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("preferredVoice");
-    }
-    return null;
-  });
 
   const currentUtterance = useRef<SpeechSynthesisUtterance | null>(null);
 
@@ -29,17 +24,27 @@ export const useSpeech = (options: UseSpeechProps = {}) => {
 
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
-      setAvailableVoices(voices);
-      
-      // Debug: log all voices to console
-      //console.log('📢 Available voices:', voices.map(v => ({ name: v.name, lang: v.lang })));
+      if (voices.length > 0) {
+        setAvailableVoices(voices);
+        setVoicesLoaded(true);
+      }
     };
 
     loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
+    
+    // Better to use addEventListener if supported, to avoid overwriting other hooks
+    if (window.speechSynthesis.addEventListener) {
+      window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+    } else if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
 
     return () => {
-      window.speechSynthesis.onvoiceschanged = null;
+      if (window.speechSynthesis.removeEventListener) {
+        window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
+      } else {
+        window.speechSynthesis.onvoiceschanged = null;
+      }
     };
   }, [supported]);
 
@@ -58,131 +63,124 @@ export const useSpeech = (options: UseSpeechProps = {}) => {
     };
   }, [supported]);
 
-  const saveVoicePreference = useCallback((voiceName: string) => {
-    setSelectedVoiceName(voiceName);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("preferredVoice", voiceName);
-    }
-  }, []);
-
-  const getPreferredVoice = useCallback((): SpeechSynthesisVoice | null => {
-    if (availableVoices.length === 0) return null;
+  const getPreferredVoice = useCallback((voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null => {
+    if (voices.length === 0) return null;
 
     // 1. Try saved voice preference first
-    if (selectedVoiceName) {
-      const savedVoice = availableVoices.find(
-        (voice) => voice.name === selectedVoiceName,
-      );
-      if (savedVoice) return savedVoice;
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("preferredVoice");
+      if (saved) {
+        const savedVoice = voices.find((v) => v.name === saved);
+        if (savedVoice) return savedVoice;
+      }
     }
 
-    // 2. Cross-platform female voice priority list
+    // 2. Female voice priority list (order matters!)
     const femaleVoicePatterns = [
-      // Google Chrome (Windows/Mac/Android)
+      // Microsoft Edge / Windows - Modern neural voices
+      'Microsoft Emma',
+      'Microsoft Jenny',
+      'Microsoft Aria',
+      'Microsoft Michelle',
+      'Microsoft Zira',
+      
+      // Google Chrome
       'Google UK English Female',
       'Google US English Female',
       'Google UK English',
+      'Google US English', // Often female by default on Chrome
+      
       // macOS / iOS
       'Samantha',
-      'Siri',
       'Allison',
       'Ava',
       'Susan',
       'Karen',
       'Victoria',
-      // Windows
-      'Microsoft Zira',
-      'Microsoft Helena',
-      'Microsoft Susan',
-      'Microsoft - English (United States) - Zira',
-      // Android
-      'en-US-x-',
-      'English United States',
-      'Female',
+      
+      // Generic patterns (last resort)
+      'female',
     ];
 
-    // Try to find by pattern
+    // Search for female voices (allow ANY English language: en-US, en-GB, en-AU, etc.)
     for (const pattern of femaleVoicePatterns) {
-      const voice = availableVoices.find(v => 
+      const voice = voices.find(v => 
         v.name.toLowerCase().includes(pattern.toLowerCase()) && 
-        v.lang.startsWith('en-US')
+        v.lang.startsWith('en')
       );
       if (voice) {
-        console.log('🎤 Found female voice:', voice.name);
-        saveVoicePreference(voice.name);
+        if (typeof window !== "undefined") localStorage.setItem("preferredVoice", voice.name);
         return voice;
       }
     }
 
-    // 3. Fallback: any US English voice (better than nothing)
-    const anyUsVoice = availableVoices.find(v => v.lang.startsWith('en-US'));
-    if (anyUsVoice) {
-      console.log('🎤 Fallback US voice:', anyUsVoice.name);
-      saveVoicePreference(anyUsVoice.name);
-      return anyUsVoice;
-    }
-
-    // 4. Last resort: any English voice
-    const anyEnglishVoice = availableVoices.find(v => v.lang.startsWith('en'));
+    // 3. Fallback: any English voice (not just US)
+    const anyEnglishVoice = voices.find(v => v.lang.startsWith('en'));
     if (anyEnglishVoice) {
-      console.log('🎤 Fallback English voice:', anyEnglishVoice.name);
-      saveVoicePreference(anyEnglishVoice.name);
+      if (typeof window !== "undefined") localStorage.setItem("preferredVoice", anyEnglishVoice.name);
       return anyEnglishVoice;
     }
 
     return null;
-  }, [availableVoices, selectedVoiceName, saveVoicePreference]);
+  }, []);
+
+  const executeSpeech = useCallback((text: string, customRate?: number, voices: SpeechSynthesisVoice[] = []) => {
+    // Cancel current speech
+    if (currentUtterance.current) {
+      window.speechSynthesis.cancel();
+      currentUtterance.current = null;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    currentUtterance.current = utterance;
+
+    const voice = getPreferredVoice(voices);
+    if (voice) {
+      utterance.voice = voice;
+    }
+
+    utterance.lang = "en-US";
+    utterance.rate = customRate !== undefined ? customRate : rate;
+    utterance.pitch = pitch;
+    utterance.volume = 1.0;
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      currentUtterance.current = null;
+    };
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      currentUtterance.current = null;
+    };
+
+    try {
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      setIsSpeaking(false);
+      currentUtterance.current = null;
+    }
+  }, [getPreferredVoice, rate, pitch]);
 
   const speak = useCallback(
     (text: string, customRate?: number) => {
-      if (!supported || !window.speechSynthesis) {
-        console.warn("Speech synthesis not supported");
+      if (!supported || !window.speechSynthesis) return;
+
+      const voices = window.speechSynthesis.getVoices();
+      
+      // If voices are not loaded yet, wait a tiny bit then execute directly.
+      // This completely avoids the infinite setTimeout loop.
+      if (voices.length === 0) {
+        setTimeout(() => {
+          const freshVoices = window.speechSynthesis.getVoices();
+          executeSpeech(text, customRate, freshVoices);
+        }, 100);
         return;
       }
 
-      // Cancel current speech
-      if (currentUtterance.current) {
-        window.speechSynthesis.cancel();
-        currentUtterance.current = null;
-      }
-
-      const utterance = new SpeechSynthesisUtterance(text);
-      currentUtterance.current = utterance;
-
-      // Apply voice preference
-      const voice = getPreferredVoice();
-      if (voice) {
-        utterance.voice = voice;
-        console.log('🔊 Speaking with voice:', voice.name);
-      } else {
-        console.log('🔊 Speaking with default voice');
-      }
-
-      utterance.lang = "en-US";
-      utterance.rate = customRate !== undefined ? customRate : rate;
-      utterance.pitch = pitch;
-      utterance.volume = 1.0;
-
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        currentUtterance.current = null;
-      };
-      utterance.onerror = (event: SpeechSynthesisErrorEvent) => {
-        console.error("Speech synthesis error:", event.error);
-        setIsSpeaking(false);
-        currentUtterance.current = null;
-      };
-
-      try {
-        window.speechSynthesis.speak(utterance);
-      } catch (error) {
-        console.error("Failed to speak:", error);
-        setIsSpeaking(false);
-        currentUtterance.current = null;
-      }
+      executeSpeech(text, customRate, voices);
     },
-    [supported, getPreferredVoice, rate, pitch],
+    [supported, executeSpeech],
   );
 
   const speakWord = useCallback(
@@ -210,6 +208,7 @@ export const useSpeech = (options: UseSpeechProps = {}) => {
     isSpeaking, 
     stopSpeaking,
     supported,
-    availableVoices
+    availableVoices,
+    voicesLoaded
   };
 };
